@@ -1,21 +1,46 @@
 import { Observable } from "rxjs";
 
-let numbers: number[] = [1, 5, 10];
-let source: Observable<number> = Observable.create(observer => {
 
-  for (let n of numbers) {
-    observer.next(n);
-  }
+let output = document.getElementById("output");
+let button = document.getElementById("button");
 
-  observer.complete();
+let click = Observable.fromEvent(button, "click");
 
-});
+function load(url: string) {
+  return Observable.create(observer => {
+    let xhr = new XMLHttpRequest();
 
+    xhr.addEventListener("load", () => {
+      if (xhr.status === 200) {
+        let data = JSON.parse(xhr.responseText);
+        observer.next(data);
+        observer.complete();
+      } else {
+        observer.error(xhr.statusText);
+      }
 
+    });
 
-source.subscribe(
-  value => console.log(`value: ${value}`),
-  error => console.log(`error: ${error}`),
+    xhr.open("GET", url);
+    xhr.send();
+  }).retry(3);
+}
+
+function loadWithFetch(url: string) {
+  return Observable.fromPromise(fetch(url).then(res => res.json()));
+}
+
+function renderMovies(movies) {
+  movies.forEach(m => {
+    let div = document.createElement("div");
+    div.innerText = m.title;
+    output.appendChild(div);
+  })
+}
+
+click.flatMap(e => load("moviess.json"))
+  .subscribe(
+  renderMovies,
+  e => console.log(`error: ${e}`),
   () => console.log("Complete!")
-
-);
+  );
