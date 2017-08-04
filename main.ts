@@ -1,46 +1,47 @@
 import { Observable } from "rxjs";
+import { load, loadWithFetch } from "./loader";
+
+let source = Observable.merge(
+  Observable.of(1),
+  Observable.from([2,3,4]),
+  Observable.throw(new Error),
+  Observable.of(5)
+).catch(e => {
+  console.log(`Error Appended: ${e}`);
+  return Observable.throw(new Error)
+});
+
+source.subscribe(
+  value => console.log(`value ${value}`),
+  e => console.log(`Error: ${e}`)
+);
 
 
-let output = document.getElementById("output");
-let button = document.getElementById("button");
 
-let click = Observable.fromEvent(button, "click");
 
-function load(url: string) {
-  return Observable.create(observer => {
-    let xhr = new XMLHttpRequest();
 
-    xhr.addEventListener("load", () => {
-      if (xhr.status === 200) {
-        let data = JSON.parse(xhr.responseText);
-        observer.next(data);
-        observer.complete();
-      } else {
-        observer.error(xhr.statusText);
-      }
 
-    });
+// Some comment
 
-    xhr.open("GET", url);
-    xhr.send();
-  }).retry(3);
-}
 
-function loadWithFetch(url: string) {
-  return Observable.fromPromise(fetch(url).then(res => res.json()));
-}
+// let output = document.getElementById("output");
+// let button = document.getElementById("button");
 
-function renderMovies(movies) {
-  movies.forEach(m => {
-    let div = document.createElement("div");
-    div.innerText = m.title;
-    output.appendChild(div);
-  })
-}
+// let click = Observable.fromEvent(button, "click");
 
-click.flatMap(e => load("moviess.json"))
-  .subscribe(
-  renderMovies,
-  e => console.log(`error: ${e}`),
-  () => console.log("Complete!")
-  );
+// function renderMovies(movies) {
+//   movies.forEach(m => {
+//     let div = document.createElement("div");
+//     div.innerText = m.title;
+//     output.appendChild(div);
+//   })
+// }
+
+// // loadWithFetch("movies.json").subscribe(renderMovies);
+
+// click.flatMap(e => loadWithFetch("movies.json"))
+//   .subscribe(
+//     renderMovies,
+//     e => console.log(`error: ${e}`),
+//     () => console.log("Complete!")
+//   );
